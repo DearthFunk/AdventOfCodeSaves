@@ -91,8 +91,9 @@ f = open("data.txt", "r")
 data = f.read().split('\n')
 line1 = data[0].split(',')
 line2 = data[1].split(',')
-get_manhattan_distance(
+result = get_manhattan_distance(
 	line1,
 	line2,
 )
+print(result)
 

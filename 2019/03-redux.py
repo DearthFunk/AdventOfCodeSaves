@@ -38,11 +38,11 @@ def get_manhattan_distance(line1, line2):
 		intersects = []
 		for line_a in set_a:
 			l1 = line_a[0]
-			print(l1)
+			#print(l1)
 			for line_b in set_b:
 				l2 = line_b[0]
 				point_of_intersection = l1.intersection(l2)
-				print('   ', l2, point_of_intersection)
+				#print('   ', l2, point_of_intersection)
 				if len(point_of_intersection) == 0:
 					continue
 				intersects.append(point_of_intersection)
