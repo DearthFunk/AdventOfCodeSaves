@@ -1,99 +1,122 @@
-# https://adventofcode.com/2019/day/3/input
+import datetime
+from sympy import Point, Line, Segment
 
 
 def get_manhattan_distance(line1, line2):
-	def parse_line(line_data):
-		x = 0
-		y = 0
-		pos = {'x': x, 'y': y, 'msg': line_data[0]}
-		items = [pos]
+	def get_line_segments(line_data):
+		def adjust_pos(point, cmd):
+			direction = cmd[0]
+			distance = int(cmd[1:])
+			x = point[0]
+			y = point[1]
+			if direction == 'R':
+				return x + distance, y
+			elif direction == 'L':
+				return x - distance, y
+			elif direction == 'U':
+				return x, y + distance
+			elif direction == 'D':
+				return x, y - distance
 
-		# we enumerate starting at index 1 and then grab the previous message
-		# benefit is we can attach the msg command to the prev index
-		# so if the first 2 commands are  R10 U10 xxxx
-		# you can read it step by step [{0,0,'R10'}, {10,0,'U10}, {10,10,xxxxx}]
-		# make it easy to read
-		# just have to remember the applied result of the message is the x/y at n+1
-		prev_msg = ''
-		for index, msg in enumerate(line_data[1:]):
-			prev_msg = line_data[index]
-			direction = prev_msg[0]
-			distance = int(prev_msg[1:])
-			res = get_pos(direction, distance, x, y)
-			pos = {'x': res[0], 'y': res[1], 'msg': msg}
-			items.append(pos)
+		line_segments = []
+		p1 = (0, 0)
+		p2 = (0, 0)
+		for index, cmd in enumerate(line_data):
+			p2 = adjust_pos(p2, cmd)
+			seg = Segment(
+				Point(p1[0], p1[1]),
+				Point(p2[0], p2[1])
+			)
+			line_segments.append(
+				(seg, cmd)
+			)
+			p1 = p2
 
-		# need to calculate last command now
-		# ???
+		return line_segments
 
-		return items
+	def get_line_intersections(set_a, set_b):
+		intersects = []
+		for line_a in set_a:
+			l1 = line_a[0]
+			#print(l1)
+			for line_b in set_b:
+				l2 = line_b[0]
+				point_of_intersection = l1.intersection(l2)
+				#print('   ', l2, point_of_intersection)
+				if len(point_of_intersection) == 0:
+					continue
+				intersects.append(point_of_intersection)
 
-	def get_pos(direction, distance, x, y):
-		if direction == 'R':
-			x += distance
-		elif direction == 'L':
-			x -= distance
-		elif direction == 'U':
-			y += distance
-		elif direction == 'D':
-			y -= distance
-		return x, y
+		return intersects
 
-	#https://stackoverflow.com/questions/3838329/how-can-i-check-if-two-segments-intersect
-	def ccw(a, b, c):
-		return (c['y'] - a['y']) * (b['x'] - a['x']) > (b['y'] - a['y']) * (c['x'] - a['x'])
+	def get_point_distances(data):
+		res = []
+		for point in data:
+			# Note: dist != distance between points, but distance travelled
+			distance_traveled = abs(point[0].x) + abs(point[0].y)
+			res.append(distance_traveled)
+		return res
 
-	def intersect(a, b, c, d):
-		return ccw(a, c, d) != ccw(b, c, d) and ccw(a, b, c) != ccw(a, b, d)
+	print_steps = True
+	if print_steps:
+		print('--- data -------------------')
+		print(line1)
+		print(line2)
 
-	def print_line_data(line_strings, line_data):
-		print(line_strings)
-		for line in line_data:
-			print(line)
-		print('-----')
-		print(len(line_strings), len(line_data))
-		print('-----')
+	line1_segments = get_line_segments(line1)
+	line2_segments = get_line_segments(line2)
+	if print_steps:
+		print('--- segments ---------------')
+		print(line1_segments)
+		print(line2_segments)
 
-	line1_data = parse_line(line1)
-	#line2_data = parse_line(line2)
+	intersections = get_line_intersections(line1_segments, line2_segments)
+	# first intersection is always 0,0
+	intersections.pop(0)
+	if print_steps:
+		print('--- intersections ----------')
+		print(intersections)
 
-	print_line_data(line1, line1_data)
-	#print_line_data(line2, line2_data)
-"""
-	i = 0
-	while i < len(line1_data):
-		j = 0
-		while j < len(line2_data):
-			l1p1 = line1_data[i]
-			l1p2 = line1_data[i+1]
-			l2p1 = line2_data[j]
-			l2p2 = line2_data[j+1]
-			#http: // openbookproject.net / thinkcs / python / english3e / dictionaries.html
-			lines_intersect = intersect(l1p1, l1p2, l2p1, l2p2)
+	distances = get_point_distances(intersections)
+	if print_steps:
+		print('--- distances -------------')
+		print(distances)
+		print('=============================')
+		print('')
+		print('')
 
-			if lines_intersect:
-				print(l1p1, l1p2, l2p1, l2p2)
-
-			j += 2
-		i += 2
-"""
-
-
-
-
-
+	return min(distances)
 
 
 ################################################
-
 
 f = open("data.txt", "r")
 data = f.read().split('\n')
 line1 = data[0].split(',')
 line2 = data[1].split(',')
+start_date_time = datetime.datetime.now()
 result = get_manhattan_distance(
 	line1,
 	line2,
 )
-print(result)
+print('start: ', start_date_time)
+print('  end: ', datetime.datetime.now())
+print('RESULT:', result)
 
+"""
+result_1 = get_manhattan_distance(
+	['R75','D30','R83','U83','L12','D49','R71','U7','L72'],
+	['U62','R66','U55','R34','D71','R55','D58','R83']
+)
+result_2 = get_manhattan_distance(
+	['R98','U47','R26','D63','R33','U87','L62','D20','R33','U53','R51'],
+	['U98','R91','D20','R16','D67','R40','U7','R15','U6','R7']
+)
+result_3 = get_manhattan_distance(
+	['R8','U5','L5','D3'],
+	['U7','R6','D4','L4']
+)
+print('159: ', result_1)
+print('135: ', result_2)
+print('  6: ', result_3)
+"""
